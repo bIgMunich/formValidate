@@ -1,0 +1,245 @@
+<style type="text/css">
+    .row {
+        width: 100%;
+        height: 20px;
+    }
+
+    .col-2 {
+        width: 18%;
+        float: left;
+    }
+
+    .col-3 {
+        width: 27%;
+        float: left;
+    }
+
+    .col-5 {
+        width: 45%;
+        float: left;
+    }
+
+    .rowSpace {
+        width: 100%;
+        height: 5px;
+    }
+
+    #Content {
+        width: 800px;
+        border: 1px solid black;
+    }
+
+    .error {
+        float: left;
+        color: red;
+    }
+
+    .corret {
+        float: left;
+        color: green;
+    }
+</style>
+<form>
+    <div id="Content">
+        <div class="row">
+            <div class="col-2">姓名:</div>
+            <div class="col-3"><input id="Name" name="Name" type="text" class="requierd" /></div>
+        </div>
+        <div class="rowSpace"></div>
+
+        <div class="row">
+            <div class="col-2">Age:</div>
+            <div class="col-3">
+                <input id="Age" name="Age" type="text" class="numbers" />
+            </div>
+        </div>
+
+        <div class="rowSpace"></div>
+        <div class="row">
+            <div class="col-2">Email:</div>
+            <div class="col-3">
+                <input id="Email" name="Email" type="text" class="email" />
+            </div>
+        </div>
+
+        <div class="rowSpace"></div>
+        <div class="row">
+            <div class="col-2">Phone:</div>
+            <div class="col-3">
+                <input id="Phone" name="Phone" type="text" class="phone" />
+            </div>
+        </div>
+
+        <div class="rowSpace"></div>
+        <div class="row">
+            <div class="col-2">Date:</div>
+            <div class="col-3">
+                <input id="Date" name="Date" type="text" class="date" />
+            </div>
+        </div>
+
+        <div class="rowSpace"></div>
+        <div class="row">
+            <div class="col-2">Address:</div>
+            <div class="col-3">
+                <input id="Address" name="Address" type="text" />
+            </div>
+        </div>
+
+        <div class="rowSpace"></div>
+        <div class="row">
+            <input id="btn" type="button" value="提交" />
+        </div>
+    </div>
+</form>
+<script type="text/javascript">
+
+    var validateSpace = {
+        //规则
+        errMs: {
+            requierd: {
+                msg: "必填字段",
+                test: function (ele) {
+                    return ele.value > 0;
+                }
+            },
+            numbers: {
+                msg: "必须为数字,但是得大于0",
+                test: function (ele) {
+                    return !ele.value || /^[1-9]([0-9]{1,2})?$/.test(ele.value);
+                }
+            },
+            email: {
+                msg: "邮箱格式",
+                test: function (ele) {
+                    return !ele.value || /^[0-9a-zA-Z_\u4e00-\u9fa5]+@[0-9a-zA-Z]+\.[0-9a-zA-Z]+/.test(ele.value);
+                }
+            },
+            phone: {
+                msg: "请输入11或者12位手机号码",
+                test: function (ele) {
+                    return !ele.value || /^1[0-9]{10,11}$/.test(ele.value);
+                }
+            },
+            date: {
+                msg: "请输入yyyy/mm/dd格式",
+                test: function (ele) {
+                    return !ele.value || /^[1-9][0-9]{3}\/[0-9]{1,2}\/[0-9]{1,2}$/.test(ele.value);
+                }
+            }
+        },
+
+        //验证全部字段
+        validateForm: function (form) {
+            var flag = true;
+            for (var i = 0; i < form.elements.length; i++) {
+                if (form.elements[i].type != "button") {
+                    if (!validateSpace.validateFild(form.elements[i])) {
+                        flag = false;
+                    }
+                }
+            }
+            return flag;
+        },
+
+        //验证字段
+        validateFild: function (ele) {
+            //开始遍历规则列表
+            var result = validateSpace.realValidate(ele);
+            if (result.flag) {
+                validateSpace.showRight(ele);
+            } else {
+                validateSpace.showErrors(ele, result.msg);
+            }
+            return result.flag;
+        },
+        //开始验证单个字段
+        realValidate: function (ele) {
+            var result = new validateSpace.Result(true, "");
+            for (var name in validateSpace.errMs) {
+                var classRule = eval("/" + name + "/g");
+                if (classRule.test(ele.className)) {
+                    if (!validateSpace.errMs[name].test(ele)) {
+                        result.flag = false;
+                        result.msg = validateSpace.errMs[name].msg;
+                        return result;
+                    }
+                }
+            }
+            return result;
+        },
+        //返回结果类
+        Result: function (flag, msg) {
+            this.flag = flag;
+            this.msg = msg;
+        },
+        showRight: function (ele) {
+            var next = ele.parentNode.nextElementSibling;
+            if (next) {
+                next.className = 'corret'
+                next.innerHTML = "√";
+            } else {
+                next = document.createElement("DIV");
+                next.className = "corret";
+                next.innerHTML = "√";
+                ele.parentNode.parentNode.appendChild(next);
+            }
+        },
+
+        showErrors: function (ele, msg) {
+            var next = ele.parentNode.nextElementSibling;
+            if (next) {
+                next.className = "error";
+                next.innerHTML = msg;
+            } else {
+                next = document.createElement("DIV");
+                next.className = "error";
+                next.innerHTML = msg;
+                ele.parentNode.parentNode.appendChild(next);
+            }
+        },
+
+        init: function (form) {
+            for (var i = 0; i < form.elements.length; i++) {
+                if (form.elements[i].type != "button") {
+                    //如果不是IE
+                    if (window.addEventListener) {
+                        form.elements[i].addEventListener("change", function () {
+                            validateSpace.validateFildSigle(this);//this指向
+                        });
+                    } else {
+                        form.elements[i].attachEvent("onchange", function () {
+                            validateSpace.validateFildSigle(this);//this指向
+                        });
+                    }
+                }
+            }
+        },
+        //change触发时间
+        validateFildSigle: function (ele) {
+            var result = validateSpace.realValidate(ele);
+            if (result.flag) {
+                validateSpace.showRight(ele);
+            } else {
+                validateSpace.showErrors(ele, result.msg);
+            }
+        }
+
+    }
+
+    var form = document.getElementsByTagName("Form")[0];
+    validateSpace.init(form);
+    if (window.addEventListener) {
+        document.getElementById("btn").addEventListener("click", function () {
+            if (validateSpace.validateForm(form)) {
+                alert("可以进入方法了");
+            }
+        });
+    } else {
+        document.getElementById("btn").attachEvent("onclick", function () {
+            if (validateSpace.validateForm(form)) {
+                alert("可以进入方法了");
+            }
+        });
+    }
+</script>
